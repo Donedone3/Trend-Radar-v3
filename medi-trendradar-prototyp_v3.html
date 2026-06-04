@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medi Trend Radar — Prototyp</title>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+
+:root, [data-theme="light"] {
+  --color-bg: #f7f6f2; --color-surface: #f9f8f5; --color-surface-2: #fbfbf9;
+  --color-surface-offset: #f0ede8; --color-surface-dynamic: #e6e4df;
+  --color-divider: #dcd9d5; --color-border: #d4d1ca;
+  --color-text: #28251d; --color-text-muted: #7a7974; --color-text-faint: #bab9b4;
+  --color-primary: #c8004b; --color-primary-hover: #a0003c; --color-primary-active: #7a0030;
+  --color-primary-highlight: #f5d0de;
+  --color-accent: #e8007a;
+  --color-sector-1: #c8004b; --color-sector-2: #0069a8; --color-sector-3: #437a22; --color-sector-4: #d19900;
+  --radius-sm: 0.375rem; --radius-md: 0.5rem; --radius-lg: 0.75rem; --radius-xl: 1rem; --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.07); --shadow-md: 0 4px 12px oklch(0.2 0.01 80 / 0.09);
+  --shadow-lg: 0 12px 32px oklch(0.2 0.01 80 / 0.13);
+  --font-body: 'Satoshi', 'Inter', sans-serif; --font-mono: 'DM Mono', monospace;
+  --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+  --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+  --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+  --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="dark"] {
+  --color-bg: #131211; --color-surface: #1a1918; --color-surface-2: #1f1e1c;
+  --color-surface-offset: #242320; --color-surface-dynamic: #2d2c2a;
+  --color-divider: #262523; --color-border: #333230;
+  --color-text: #d4d3d0; --color-text-muted: #787775; --color-text-faint: #4f4e4c;
+  --color-primary: #f04d7e; --color-primary-hover: #e02060; --color-primary-active: #b81a4f;
+  --color-primary-highlight: #3a1e29;
+  --color-accent: #ff6ba0;
+  --color-sector-1: #f04d7e; --color-sector-2: #5591c7; --color-sector-3: #6daa45; --color-sector-4: #e8af34;
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.25); --shadow-md: 0 4px 12px oklch(0 0 0 / 0.35);
+  --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.45);
+}
+
+body { font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-text); background: var(--color-bg); min-height: 100dvh; display: flex; flex-direction: column; }
+
+/* HEADER */
+.header {
+  display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1.5rem;
+  background: var(--color-surface); border-bottom: 1px solid var(--color-border);
+  position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm);
+}
+.logo { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: var(--text-base); color: var(--color-primary); }
+.logo svg { width: 28px; height: 28px; }
+.header-divider { width: 1px; height: 24px; background: var(--color-border); }
+.view-toggle { display: flex; background: var(--color-surface-offset); border-radius: var(--radius-full); padding: 3px; gap: 2px; margin-left: auto; }
+.view-btn { padding: 0.35rem 0.9rem; border-radius: var(--radius-full); border: none; font-family: inherit; font-size: var(--text-xs); font-weight: 500; cursor: pointer; color: var(--color-text-muted); background: transparent; transition: all var(--transition); white-space: nowrap; }
+.view-btn.active { background: var(--color-primary); color: #fff; box-shadow: var(--shadow-sm); }
+.view-btn:not(.active):hover { color: var(--color-text); background: var(--color-surface-dynamic); }
+.header-actions { display: flex; gap: 0.5rem; align-items: center; }
+.icon-btn { background: none; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 0.4rem; cursor: pointer; color: var(--color-text-muted); display: flex; align-items: center; transition: all var(--transition); }
+.icon-btn:hover { color: var(--color-text); border-color: var(--color-text-muted); }
+
+/* LAYOUT */
+.app-body { display: flex; flex: 1; overflow: hidden; height: calc(100dvh - 57px); }
+
+/* SIDEBAR */
+.sidebar { width: 300px; flex-shrink: 0; background: var(--color-surface); border-right: 1px solid var(--color-border); display: flex; flex-direction: column; overflow-y: auto; }
+.sidebar-section { padding: 1rem; border-bottom: 1px solid var(--color-divider); }
+.sidebar-label { font-size: var(--text-xs); font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.6rem; }
+.filter-chip { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.25rem 0.6rem; border-radius: var(--radius-full); font-size: var(--text-xs); font-weight: 500; border: 1px solid var(--color-border); cursor: pointer; margin: 0.15rem; background: var(--color-surface-offset); color: var(--color-text-muted); transition: all var(--transition); }
+.filter-chip:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.filter-chip.active { background: var(--color-primary-highlight); border-color: var(--color-primary); color: var(--color-primary); }
+.filter-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.trend-list { display: flex; flex-direction: column; gap: 0.35rem; padding: 1rem; flex: 1; }
+.trend-item { padding: 0.6rem 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); cursor: pointer; transition: all var(--transition); background: var(--color-surface); }
+.trend-item:hover, .trend-item.active { border-color: var(--color-primary); background: var(--color-primary-highlight); }
+.trend-item-header { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; }
+.trend-item-title { font-size: var(--text-xs); font-weight: 600; color: var(--color-text); }
+.trend-badge { font-size: 10px; padding: 2px 6px; border-radius: var(--radius-full); font-weight: 600; font-family: var(--font-mono); }
+.badge-high { background: #fde8d0; color: #c55700; }
+.badge-medium { background: #e8f5de; color: #437a22; }
+.badge-low { background: var(--color-surface-offset); color: var(--color-text-muted); }
+[data-theme="dark"] .badge-high { background: #3a2815; color: #fdab43; }
+[data-theme="dark"] .badge-medium { background: #1e2e16; color: #6daa45; }
+.trend-item-meta { font-size: 10px; color: var(--color-text-muted); margin-top: 0.2rem; }
+
+/* MAIN CONTENT */
+.main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+.view { display: none; flex: 1; }
+.view.active { display: flex; flex-direction: column; flex: 1; }
+
+/* RADAR VIEW */
+.radar-container { display: flex; flex: 1; align-items: center; justify-content: center; padding: 2rem; position: relative; }
+.radar-svg-wrap { position: relative; width: 100%; max-width: 560px; aspect-ratio: 1; }
+.radar-svg-wrap svg { width: 100%; height: 100%; }
+.radar-toolbar { display: flex; gap: 0.5rem; padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--color-border); align-items: center; flex-wrap: wrap; }
+.radar-toolbar span { font-size: var(--text-xs); color: var(--color-text-muted); margin-right: 0.5rem; }
+
+/* PROJECT VIEW */
+.project-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--color-border); display: flex; align-items: center; gap: 1rem; }
+.project-header h2 { font-size: var(--text-lg); font-weight: 700; }
+.project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; padding: 1.5rem; }
+.project-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1rem; cursor: pointer; transition: all var(--transition); position: relative; overflow: hidden; }
+.project-card:hover { border-color: var(--color-primary); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.project-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.6rem; }
+.project-card-title { font-size: var(--text-sm); font-weight: 700; color: var(--color-text); }
+.sector-tag { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-full); white-space: nowrap; }
+.sector-digital { background: #d5e8f5; color: #0069a8; }
+.sector-health { background: #d5f0e5; color: #1a7a4a; }
+.sector-work { background: #f9f0d3; color: #b07a00; }
+.sector-sustain { background: #f9d5e0; color: #a0003c; }
+[data-theme="dark"] .sector-digital { background: #1a2d3d; color: #5591c7; }
+[data-theme="dark"] .sector-health { background: #182d22; color: #6daa45; }
+[data-theme="dark"] .sector-work { background: #2d2512; color: #e8af34; }
+[data-theme="dark"] .sector-sustain { background: #2d1220; color: #f04d7e; }
+.project-card-desc { font-size: var(--text-xs); color: var(--color-text-muted); line-height: 1.5; margin-bottom: 0.75rem; }
+.project-trends { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.trend-tag { font-size: 10px; padding: 2px 7px; background: var(--color-surface-offset); border: 1px solid var(--color-border); border-radius: var(--radius-full); color: var(--color-text-muted); }
+.project-card-footer { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--color-divider); display: flex; align-items: center; justify-content: space-between; }
+.project-status { display: flex; align-items: center; gap: 0.4rem; font-size: 10px; font-weight: 500; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; }
+.status-active { background: #6daa45; }
+.status-planned { background: #e8af34; }
+.status-concept { background: #5591c7; }
+.relevance-bar { height: 4px; border-radius: var(--radius-full); background: var(--color-surface-dynamic); flex: 1; max-width: 80px; overflow: hidden; }
+.relevance-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-full); }
+.project-card-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+
+.project-radar-left { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.project-radar-container { display: flex; align-items: center; justify-content: center; padding: 1.5rem; background: var(--color-bg); border-bottom: 1px solid var(--color-border); min-height: 420px; }
+.project-radar-svg-wrap { position: relative; width: 100%; max-width: 500px; aspect-ratio: 1; }
+.project-radar-svg-wrap svg { width: 100%; height: 100%; }
+.project-card-list { overflow-y: auto; padding: 1rem 1.5rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem; }
+
+/* DETAIL PANEL */
+.detail-panel { width: 340px; flex-shrink: 0; border-left: 1px solid var(--color-border); background: var(--color-surface); overflow-y: auto; display: flex; flex-direction: column; transition: all var(--transition); }
+.detail-panel.empty { display: flex; align-items: center; justify-content: center; }
+.detail-empty { text-align: center; padding: 2rem; color: var(--color-text-muted); }
+.detail-empty svg { width: 40px; height: 40px; margin: 0 auto 0.75rem; color: var(--color-text-faint); }
+.detail-empty p { font-size: var(--text-xs); }
+.detail-header { padding: 1.25rem 1.25rem 0.75rem; border-bottom: 1px solid var(--color-divider); }
+.detail-title { font-size: var(--text-base); font-weight: 700; margin-bottom: 0.25rem; }
+.detail-subtitle { font-size: var(--text-xs); color: var(--color-text-muted); }
+.detail-body { padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+.detail-section-title { font-size: var(--text-xs); font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.metric-row { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid var(--color-divider); }
+.metric-row:last-child { border-bottom: none; }
+.metric-label { font-size: var(--text-xs); color: var(--color-text-muted); }
+.metric-value { font-size: var(--text-xs); font-weight: 600; font-family: var(--font-mono); color: var(--color-text); }
+.score-bar { display: flex; align-items: center; gap: 0.5rem; }
+.score-track { flex: 1; height: 5px; background: var(--color-surface-dynamic); border-radius: var(--radius-full); overflow: hidden; max-width: 100px; }
+.score-fill { height: 100%; border-radius: var(--radius-full); background: var(--color-primary); }
+.hype-indicator { display: flex; gap: 3px; align-items: center; }
+.hype-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-surface-dynamic); }
+.hype-dot.filled { background: var(--color-primary); }
+.tag-list { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.detail-tag { font-size: 10px; padding: 2px 8px; background: var(--color-surface-offset); border: 1px solid var(--color-border); border-radius: var(--radius-full); color: var(--color-text-muted); }
+.action-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.6rem; border-radius: var(--radius-md); font-family: inherit; font-size: var(--text-xs); font-weight: 600; cursor: pointer; transition: all var(--transition); border: 1px solid var(--color-border); background: var(--color-surface-offset); color: var(--color-text); margin-top: 0.25rem; }
+.action-btn.primary { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.action-btn.primary:hover { background: var(--color-primary-hover); }
+.action-btn:not(.primary):hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+/* TOOLTIP */
+.tooltip-card {
+  position: fixed; z-index: 200; background: var(--color-surface-2); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); padding: 0.75rem 1rem; box-shadow: var(--shadow-lg);
+  pointer-events: none; max-width: 220px; font-size: var(--text-xs); display: none;
+}
+.tooltip-card.visible { display: block; }
+.tooltip-card-title { font-weight: 700; margin-bottom: 0.3rem; color: var(--color-text); }
+.tooltip-card-meta { color: var(--color-text-muted); line-height: 1.5; }
+
+/* AB BANNER */
+.ab-banner { background: var(--color-primary-highlight); border-bottom: 1px solid var(--color-primary); padding: 0.5rem 1.5rem; display: flex; align-items: center; gap: 0.75rem; font-size: var(--text-xs); color: var(--color-primary); font-weight: 500; }
+.ab-badge { background: var(--color-primary); color: #fff; border-radius: var(--radius-full); padding: 1px 8px; font-size: 10px; font-weight: 700; }
+
+/* SEARCH */
+.search-bar { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0.75rem; background: var(--color-surface-offset); border: 1px solid var(--color-border); border-radius: var(--radius-md); margin: 0.75rem 1rem; transition: border-color var(--transition); }
+.search-bar:focus-within { border-color: var(--color-primary); }
+.search-bar input { background: none; border: none; outline: none; font-family: inherit; font-size: var(--text-xs); color: var(--color-text); width: 100%; }
+.search-bar svg { color: var(--color-text-muted); flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">
+    <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Medi Logo">
+      <rect width="28" height="28" rx="6" fill="var(--color-primary)"/>
+      <path d="M6 20V10l4 6 4-6v10M18 10v10M18 15h4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span>Trend Radar</span>
+  </div>
+  <div class="header-divider"></div>
+  <span style="font-size:var(--text-xs); color:var(--color-text-muted); font-weight:500;">Prototyp Sprint 2</span>
+
+  <div class="view-toggle" style="margin-left:auto;">
+    <button class="view-btn active" onclick="switchView('radar')" id="btn-radar">🎯 Klassischer Radar</button>
+    <button class="view-btn" onclick="switchView('project')" id="btn-project">📁 Projektzentriert</button>
+    <button class="view-btn" onclick="switchView('hybrid')" id="btn-hybrid">🔗 Trend + Projekte</button>
+  </div>
+
+  <div class="header-actions">
+    <button class="icon-btn" data-theme-toggle aria-label="Theme wechseln" title="Theme wechseln">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="icon-btn" title="Feedback geben" onclick="showFeedback()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- AB TEST BANNER -->
+<div class="ab-banner" id="ab-banner-radar">
+  <span class="ab-badge">A</span>
+  <span>Klassischer Trend Radar — Bewerte diese Darstellung: Wie gut kannst du strategische Entscheidungen treffen?</span>
+  <div style="margin-left:auto; display:flex; gap:0.4rem;">
+    <button onclick="rateFeedback('radar', 1)" style="background:none; border:1px solid var(--color-primary); border-radius:var(--radius-full); padding:2px 10px; font-size:10px; color:var(--color-primary); cursor:pointer; font-family:inherit;">👎 Schlecht</button>
+    <button onclick="rateFeedback('radar', 5)" style="background:var(--color-primary); border:none; border-radius:var(--radius-full); padding:2px 10px; font-size:10px; color:#fff; cursor:pointer; font-family:inherit;">👍 Gut</button>
+  </div>
+</div>
+<div class="ab-banner" id="ab-banner-hybrid" style="display:none;">
+  <span class="ab-badge" style="background:#437a22;">C</span>
+  <span style="color:#437a22;">Hybrid-Ansicht: Trends + verknüpfte Projekte — klicke auf einen Trend, um seine Projekte als Satelliten zu sehen.</span>
+  <div style="margin-left:auto; display:flex; gap:0.4rem;">
+    <button onclick="rateFeedback('hybrid',1)" style="background:none;border:1px solid #437a22;border-radius:var(--radius-full);padding:2px 10px;font-size:10px;color:#437a22;cursor:pointer;font-family:inherit;">👎 Schlecht</button>
+    <button onclick="rateFeedback('hybrid',5)" style="background:#437a22;border:none;border-radius:var(--radius-full);padding:2px 10px;font-size:10px;color:#fff;cursor:pointer;font-family:inherit;">👍 Gut</button>
+  </div>
+</div>
+<div class="ab-banner" id="ab-banner-project" style="display:none;">
+  <span class="ab-badge" style="background: #5591c7;">B</span>
+  <span style="color:var(--color-blue, #5591c7);">Projektzentrierter Radar — Bewerte diese Darstellung: Wie gut kannst du strategische Entscheidungen treffen?</span>
+  <div style="margin-left:auto; display:flex; gap:0.4rem;">
+    <button onclick="rateFeedback('project', 1)" style="background:none; border:1px solid #5591c7; border-radius:var(--radius-full); padding:2px 10px; font-size:10px; color:#5591c7; cursor:pointer; font-family:inherit;">👎 Schlecht</button>
+    <button onclick="rateFeedback('project', 5)" style="background:#5591c7; border:none; border-radius:var(--radius-full); padding:2px 10px; font-size:10px; color:#fff; cursor:pointer; font-family:inherit;">👍 Gut</button>
+  </div>
+</div>
+
+<div class="app-body">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="search-bar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Trends suchen…" oninput="filterTrends(this.value)">
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Sektoren</div>
+      <div>
+        <span class="filter-chip active" onclick="toggleFilter(this,'digital')"><span class="filter-dot" style="background:#5591c7"></span>Digitalisierung</span>
+        <span class="filter-chip active" onclick="toggleFilter(this,'health')"><span class="filter-dot" style="background:#6daa45"></span>Gesundheit</span>
+        <span class="filter-chip active" onclick="toggleFilter(this,'work')"><span class="filter-dot" style="background:#e8af34"></span>New Work</span>
+        <span class="filter-chip active" onclick="toggleFilter(this,'sustain')"><span class="filter-dot" style="background:#f04d7e"></span>Nachhaltigkeit</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Zeithorizont</div>
+      <div>
+        <span class="filter-chip active" onclick="toggleFilter(this,'now')">Jetzt (&lt;1 J.)</span>
+        <span class="filter-chip active" onclick="toggleFilter(this,'mid')">Mittel (1–3 J.)</span>
+        <span class="filter-chip active" onclick="toggleFilter(this,'long')">Lang (&gt;3 J.)</span>
+      </div>
+    </div>
+    <div class="sidebar-section" style="border-bottom:none;">
+      <div class="sidebar-label">Relevanz</div>
+      <div>
+        <span class="filter-chip active" onclick="toggleFilter(this,'high')"><span class="filter-dot" style="background:#f04d7e"></span>Hoch</span>
+        <span class="filter-chip active" onclick="toggleFilter(this,'medium')"><span class="filter-dot" style="background:#e8af34"></span>Mittel</span>
+        <span class="filter-chip" onclick="toggleFilter(this,'low')"><span class="filter-dot" style="background:var(--color-text-faint)"></span>Gering</span>
+      </div>
+    </div>
+    <div class="trend-list" id="trend-list"></div>
+  </aside>
+
+  <!-- VIEWS -->
+  <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+
+    <!-- VIEW A: KLASSISCHER RADAR -->
+    <div class="view active" id="view-radar">
+      <div style="display:flex; flex:1; overflow:hidden;">
+        <div class="radar-container" id="radar-container">
+          <div class="radar-svg-wrap" id="radar-wrap">
+            <svg id="radarSVG" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"></svg>
+          </div>
+        </div>
+        <div class="detail-panel" id="detail-panel-radar">
+          <div class="detail-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            <p>Klicke auf einen Trend im Radar oder der Liste, um Details zu sehen.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW B: PROJEKTZENTRIERT -->
+    <div class="view" id="view-project">
+      <div style="display:flex; flex:1; overflow:hidden;">
+        <!-- LEFT: Radar + Card List -->
+        <div class="project-radar-left">
+          <!-- Radar -->
+          <div class="project-radar-container">
+            <div class="project-radar-svg-wrap">
+              <svg id="projectRadarSVG" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"></svg>
+            </div>
+          </div>
+          <!-- Card Strip below radar -->
+          <div class="project-card-list" id="project-card-list"></div>
+        </div>
+        <!-- RIGHT: Detail Panel -->
+        <div class="detail-panel" id="detail-panel-project">
+          <div class="detail-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;margin:0 auto 0.75rem;color:var(--color-text-faint)"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <p>Klicke auf ein Projekt im Radar oder in der Liste, um Details zu sehen.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- VIEW C: HYBRID TREND + PROJEKTE -->
+  <div class="view" id="view-hybrid" style="display:none;">
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:var(--color-bg);overflow:hidden;">
+        <div style="position:relative;width:100%;max-width:560px;aspect-ratio:1;">
+          <svg id="hybridSVG" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;"></svg>
+        </div>
+      </div>
+      <div class="detail-panel" id="detail-panel-hybrid">
+        <div class="detail-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;margin:0 auto 0.75rem;color:var(--color-text-faint)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <p>Klicke auf einen Trend, um seine verknüpften Projekte als Satelliten zu sehen.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLTIP -->
+<div class="tooltip-card" id="tooltip"></div>
+
+<!-- TOOLTIP -->
+<div class="tooltip-card" id="tooltip"></div>
+
+<script>
+// DATA
+const trends = [
+  { id: 1, name: "KI-gestützte Diagnostik", sector: "digital", horizon: "now", relevance: "high", desc: "Einsatz von Machine Learning zur Bildauswertung und Frühdiagnose.", hype: 4, potential: 88, maturity: 65, sources: ["Gartner 2024","Nature Medicine"], projects: ["MedVision AI","DigitalPath"], angle: 25, ring: 1 },
+  { id: 2, name: "Telemedizin 2.0", sector: "health", horizon: "now", relevance: "high", desc: "Asynchrone und Video-Konsultationen als Standard in der Primärversorgung.", hype: 3, potential: 92, maturity: 78, sources: ["McKinsey Health","WHO"], projects: ["ConnectCare","RemoteFirst"], angle: 75, ring: 1 },
+  { id: 3, name: "Wearable Monitoring", sector: "health", horizon: "mid", relevance: "high", desc: "Kontinuierliche Patientenüberwachung durch smarte Geräte.", hype: 4, potential: 82, maturity: 55, sources: ["Statista 2024","CES Trends"], projects: ["MediTrack","WearOS Health"], angle: 130, ring: 2 },
+  { id: 4, name: "Remote Work Health", sector: "work", horizon: "mid", relevance: "medium", desc: "Ergonomie, mentale Gesundheit und Prävention für hybride Teams.", hype: 2, potential: 65, maturity: 72, sources: ["Gallup 2024"], projects: ["WorkWell"], angle: 190, ring: 2 },
+  { id: 5, name: "Nachhaltige Lieferkette", sector: "sustain", horizon: "mid", relevance: "medium", desc: "CO₂-neutrale Beschaffung und kreislaufwirtschaftliche Prozesse.", hype: 3, potential: 71, maturity: 40, sources: ["EY Report 2024","EU Green Deal"], projects: ["GreenSupply","EcoMedi"], angle: 245, ring: 2 },
+  { id: 6, name: "Predictive Analytics", sector: "digital", horizon: "mid", relevance: "high", desc: "Vorhersagemodelle für Patientenströme und Ressourcenplanung.", hype: 3, potential: 85, maturity: 50, sources: ["Deloitte Health","BCG"], projects: ["FlowPredict","OpsAI"], angle: 310, ring: 2 },
+  { id: 7, name: "Genomic Data Platforms", sector: "health", horizon: "long", relevance: "medium", desc: "Nutzung genomischer Daten für personalisierte Medizin.", hype: 5, potential: 95, maturity: 25, sources: ["Science","Nature Genetics"], projects: ["GenomeMedi"], angle: 50, ring: 3 },
+  { id: 8, name: "Blockchain Health Records", sector: "digital", horizon: "long", relevance: "low", desc: "Dezentrale, sichere Patientenakten auf Blockchain-Basis.", hype: 2, potential: 60, maturity: 20, sources: ["IEEE","Gartner"], projects: [], angle: 145, ring: 3 },
+  { id: 9, name: "Mental Health Apps", sector: "health", horizon: "now", relevance: "medium", desc: "Digital therapeutics für Burnout, Angststörungen und Depression.", hype: 3, potential: 75, maturity: 68, sources: ["JAMA Digital Health"], projects: ["MindBridge","WorkWell"], angle: 95, ring: 1 },
+  { id: 10, name: "AR-Chirurgie", sector: "digital", horizon: "long", relevance: "medium", desc: "Augmented Reality zur Operationsunterstützung und Ausbildung.", hype: 4, potential: 80, maturity: 30, sources: ["NEJM","TechCrunch"], projects: ["SurgeAR"], angle: 340, ring: 3 },
+  { id: 11, name: "Green Hospital", sector: "sustain", horizon: "long", relevance: "low", desc: "Energieautarke Klinikgebäude und nachhaltige Medizintechnik.", hype: 2, potential: 68, maturity: 22, sources: ["WHO Sustainability"], projects: ["EcoMedi"], angle: 270, ring: 3 },
+  { id: 12, name: "4-Tage-Woche", sector: "work", horizon: "mid", relevance: "medium", desc: "Neue Arbeitszeitmodelle im Gesundheitssektor.", hype: 3, potential: 58, maturity: 45, sources: ["ILO Report","Pilot Studies DE"], projects: ["WorkWell","HRFuture"], angle: 215, ring: 2 },
+];
+
+const projects = [
+  { id: 1, name: "MedVision AI", sector: "digital", sectorLabel: "Digitalisierung", desc: "KI-Plattform zur radiologischen Bildauswertung und automatisierten Befundung. Reduktion von Diagnosefehlern um 32%.", status: "active", relevance: 90, trends: ["KI-gestützte Diagnostik","Predictive Analytics"], lead: "Dr. Müller", budget: "€840K" },
+  { id: 2, name: "ConnectCare", sector: "health", sectorLabel: "Gesundheit", desc: "Telemedizin-Plattform mit asynchroner Kommunikation und KI-Triage für niedergelassene Ärzte.", status: "active", relevance: 85, trends: ["Telemedizin 2.0","Mental Health Apps"], lead: "T. Hoffmann", budget: "€520K" },
+  { id: 3, name: "MediTrack", sector: "health", sectorLabel: "Gesundheit", desc: "Wearable-Ökosystem zur kontinuierlichen Vitalüberwachung chronisch kranker Patienten.", status: "planned", relevance: 78, trends: ["Wearable Monitoring","Predictive Analytics"], lead: "S. König", budget: "€1.2M" },
+  { id: 4, name: "WorkWell", sector: "work", sectorLabel: "New Work", desc: "Präventionsprogramm für hybride Teams: Ergonomie, Stressmanagement, digitale Auszeiten.", status: "active", relevance: 62, trends: ["Remote Work Health","4-Tage-Woche","Mental Health Apps"], lead: "K. Wagner", budget: "€280K" },
+  { id: 5, name: "GreenSupply", sector: "sustain", sectorLabel: "Nachhaltigkeit", desc: "Transformation der Beschaffungskette auf CO₂-neutrale und zertifizierte Lieferanten bis 2027.", status: "planned", relevance: 58, trends: ["Nachhaltige Lieferkette","Green Hospital"], lead: "M. Bauer", budget: "€390K" },
+  { id: 6, name: "FlowPredict", sector: "digital", sectorLabel: "Digitalisierung", desc: "Predictive Analytics für Patientenströme, OP-Planung und Bettenbelegung.", status: "concept", relevance: 80, trends: ["Predictive Analytics","KI-gestützte Diagnostik"], lead: "F. Richter", budget: "€650K" },
+  { id: 7, name: "GenomeMedi", sector: "health", sectorLabel: "Gesundheit", desc: "Aufbau einer genomischen Datenplattform für personalisierte Onkologie-Therapien.", status: "concept", relevance: 72, trends: ["Genomic Data Platforms"], lead: "Prof. Schäfer", budget: "€2.1M" },
+  { id: 8, name: "SurgeAR", sector: "digital", sectorLabel: "Digitalisierung", desc: "Augmented-Reality-System für minimalinvasive Chirurgie und Ausbildungssimulation.", status: "concept", relevance: 68, trends: ["AR-Chirurgie"], lead: "Dr. Sommer", budget: "€1.8M" },
+];
+
+let selectedProject = null;
+
+
+// Mapping: Trend-ID → Liste von Projekt-IDs
+const trendToProjects = {};
+trends.forEach(t => { trendToProjects[t.id] = []; });
+
+projects.forEach(p => {
+  p.trends.forEach(tName => {
+    const t = trends.find(tr => tr.name === tName);
+    if (t) {
+      trendToProjects[t.id].push(p.id);
+    }
+  });
+});
+
+const sectorColors = { digital: '#5591c7', health: '#6daa45', work: '#e8af34', sustain: '#f04d7e' };
+const sectorNames = { digital: 'Digitalisierung', health: 'Gesundheit', work: 'New Work', sustain: 'Nachhaltigkeit' };
+const statusLabels = { active: 'Aktiv', planned: 'Geplant', concept: 'Konzept' };
+const horizonRing = { now: 1, mid: 2, long: 3 };
+
+let activeFilters = { sector: ['digital','health','work','sustain'], horizon: ['now','mid','long'], relevance: ['high','medium'] };
+let selectedTrend = null;
+let currentView = 'radar';
+let feedbackData = {};
+
+function toggleFilter(el, value) {
+  el.classList.toggle('active');
+  const groups = { digital: 'sector', health: 'sector', work: 'sector', sustain: 'sector', now: 'horizon', mid: 'horizon', long: 'horizon', high: 'relevance', medium: 'relevance', low: 'relevance' };
+  const group = groups[value];
+  if (el.classList.contains('active')) { if (!activeFilters[group].includes(value)) activeFilters[group].push(value); }
+  else { activeFilters[group] = activeFilters[group].filter(v => v !== value); }
+  renderTrendList(); renderRadar(); renderProjectGrid();
+}
+
+function filterTrends(query) {
+  const items = document.querySelectorAll('.trend-item');
+  items.forEach(item => { item.style.display = item.dataset.name.toLowerCase().includes(query.toLowerCase()) ? '' : 'none'; });
+}
+
+function getFilteredTrends() {
+  return trends.filter(t => activeFilters.sector.includes(t.sector) && activeFilters.horizon.includes(t.horizon) && activeFilters.relevance.includes(t.relevance));
+}
+
+// TREND LIST
+function renderTrendList() {
+  const list = document.getElementById('trend-list');
+  const filtered = getFilteredTrends();
+  list.innerHTML = filtered.map(t => `
+    <div class="trend-item ${selectedTrend === t.id ? 'active' : ''}" data-id="${t.id}" data-name="${t.name}" onclick="selectTrend(${t.id})">
+      <div class="trend-item-header">
+        <span class="trend-item-title">${t.name}</span>
+        <span class="trend-badge badge-${t.relevance}">${t.relevance === 'high' ? 'Hoch' : t.relevance === 'medium' ? 'Mittel' : 'Gering'}</span>
+      </div>
+      <div class="trend-item-meta">${sectorNames[t.sector]} · ${t.horizon === 'now' ? '<1 J.' : t.horizon === 'mid' ? '1–3 J.' : '>3 J.'}</div>
+    </div>
+  `).join('');
+}
+
+// RADAR SVG
+function renderRadar() {
+  const svg = document.getElementById('radarSVG');
+  const cx = 250, cy = 250, maxR = 220;
+  const rings = [maxR * 0.33, maxR * 0.66, maxR];
+  const ringLabels = ['Jetzt (<1J.)', 'Mittel (1–3J.)', 'Langfristig (>3J.)'];
+  const sectors = [
+    { name: 'Digitalisierung', startAngle: -90, endAngle: 0, color: sectorColors.digital, key: 'digital' },
+    { name: 'Gesundheit', startAngle: 0, endAngle: 90, color: sectorColors.health, key: 'health' },
+    { name: 'New Work', startAngle: 90, endAngle: 180, color: sectorColors.work, key: 'work' },
+    { name: 'Nachhaltigkeit', startAngle: 180, endAngle: 270, color: sectorColors.sustain, key: 'sustain' },
+  ];
+
+  function polar(angle, radius) {
+    const rad = (angle - 90) * Math.PI / 180;
+    return [cx + radius * Math.cos(rad), cy + radius * Math.sin(rad)];
+  }
+
+  let html = '';
+  // Sector backgrounds
+  sectors.forEach(s => {
+    if (!activeFilters.sector.includes(s.key)) return;
+    const [x1, y1] = polar(s.startAngle, maxR);
+    const [x2, y2] = polar(s.endAngle, maxR);
+    const largeArc = (s.endAngle - s.startAngle) > 180 ? 1 : 0;
+    html += `<path d="M${cx},${cy} L${x1},${y1} A${maxR},${maxR} 0 ${largeArc},1 ${x2},${y2} Z" fill="${s.color}" opacity="0.06"/>`;
+    const midAngle = (s.startAngle + s.endAngle) / 2;
+    const [lx, ly] = polar(midAngle, maxR + 18);
+    html += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="600" fill="${s.color}" opacity="0.9" font-family="Satoshi, sans-serif">${s.name}</text>`;
+    // Divider lines
+    const [dx, dy] = polar(s.startAngle, maxR);
+    html += `<line x1="${cx}" y1="${cy}" x2="${dx}" y2="${dy}" stroke="${s.color}" stroke-width="1" opacity="0.2"/>`;
+  });
+
+  // Rings
+  rings.forEach((r, i) => {
+    html += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.12"/>`;
+    html += `<text x="${cx + r - 4}" y="${cy - 6}" text-anchor="end" font-size="9" fill="currentColor" opacity="0.35" font-family="Satoshi, sans-serif">${ringLabels[i]}</text>`;
+  });
+  html += `<circle cx="${cx}" cy="${cy}" r="14" fill="var(--color-primary)" opacity="0.15"/>`;
+  html += `<circle cx="${cx}" cy="${cy}" r="6" fill="var(--color-primary)" opacity="0.5"/>`;
+
+  // Dots
+  const filtered = getFilteredTrends();
+  filtered.forEach(t => {
+    const radius = rings[t.ring - 1] * 0.7 + rings[t.ring - 1] * 0.28 * Math.random() * 0;
+    const actualR = [rings[0] * 0.55, rings[1] * 0.82, rings[2] * 0.88][t.ring - 1];
+    const [x, y] = polar(t.angle, actualR);
+    const r = t.relevance === 'high' ? 8 : t.relevance === 'medium' ? 6 : 4.5;
+    const isSelected = selectedTrend === t.id;
+    html += `<g class="radar-dot" style="cursor:pointer" onclick="selectTrend(${t.id})" onmouseenter="showTooltip(event,${t.id})" onmouseleave="hideTooltip()">
+      ${isSelected ? `<circle cx="${x}" cy="${y}" r="${r + 6}" fill="${sectorColors[t.sector]}" opacity="0.2"/>` : ''}
+      <circle cx="${x}" cy="${y}" r="${r}" fill="${sectorColors[t.sector]}" opacity="${isSelected ? '1' : '0.8'}"/>
+      <circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="var(--color-bg)" stroke-width="1.5" opacity="0.7"/>
+      <text x="${x}" y="${y - r - 4}" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.75" font-family="Satoshi, sans-serif" pointer-events="none">${t.name.length > 16 ? t.name.substring(0,15)+'…' : t.name}</text>
+    </g>`;
+  });
+
+  svg.innerHTML = html;
+}
+function renderProjectRadar() {
+  const svg = document.getElementById('projectRadarSVG');
+  if (!svg) return;
+  const cx = 250, cy = 250, maxR = 215;
+  const rings = [maxR * 0.33, maxR * 0.66, maxR];
+  const ringLabels = ['Hohe Relevanz', 'Mittlere Relevanz', 'Niedrige Relevanz'];
+  const sectors = [
+    { name: 'Digitalisierung', startAngle: -90, endAngle: 0, color: sectorColors.digital, key: 'digital' },
+    { name: 'Gesundheit',      startAngle: 0,   endAngle: 90, color: sectorColors.health,  key: 'health' },
+    { name: 'New Work',        startAngle: 90,  endAngle: 180, color: sectorColors.work,   key: 'work' },
+    { name: 'Nachhaltigkeit',  startAngle: 180, endAngle: 270, color: sectorColors.sustain, key: 'sustain' },
+  ];
+
+  function polar(angle, radius) {
+    const rad = (angle - 90) * Math.PI / 180;
+    return [cx + radius * Math.cos(rad), cy + radius * Math.sin(rad)];
+  }
+
+  let html = '';
+
+  // Sector backgrounds
+  sectors.forEach(s => {
+    const [x1, y1] = polar(s.startAngle, maxR);
+    const [x2, y2] = polar(s.endAngle, maxR);
+    const opacity = activeFilters.sector.includes(s.key) ? '0.07' : '0.02';
+    html += `<path d="M${cx},${cy} L${x1},${y1} A${maxR},${maxR} 0 0,1 ${x2},${y2} Z" fill="${s.color}" opacity="${opacity}"/>`;
+    // Sector label
+    const midAngle = (s.startAngle + s.endAngle) / 2;
+    const [lx, ly] = polar(midAngle, maxR + 20);
+    const col = activeFilters.sector.includes(s.key) ? s.color : 'var(--color-text-faint)';
+    html += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="600" fill="${col}" opacity="0.9" font-family="Satoshi, sans-serif">${s.name}</text>`;
+    // Divider line
+    const [dx, dy] = polar(s.startAngle, maxR);
+    html += `<line x1="${cx}" y1="${cy}" x2="${dx}" y2="${dy}" stroke="${s.color}" stroke-width="1" opacity="0.18"/>`;
+  });
+
+  // Rings
+  rings.forEach((r, i) => {
+    html += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.1"/>`;
+    html += `<text x="${cx + 4}" y="${cy - r + 10}" font-size="9" fill="currentColor" opacity="0.3" font-family="Satoshi, sans-serif">${ringLabels[i]}</text>`;
+  });
+  html += `<circle cx="${cx}" cy="${cy}" r="8" fill="var(--color-primary)" opacity="0.2"/>`;
+  html += `<circle cx="${cx}" cy="${cy}" r="3" fill="var(--color-primary)" opacity="0.6"/>`;
+
+  // Project dots
+  const filteredProjects = projects.filter(p => activeFilters.sector.includes(p.sector));
+  filteredProjects.forEach(p => {
+    const pos = projectPositions[p.id];
+    const [x, y] = polar(pos.angle, maxR * pos.ring);
+    const isSelected = selectedProject === p.id;
+    const col = sectorColors[p.sector];
+    const dotR = isSelected ? 11 : 9;
+
+    if (isSelected) {
+      html += `<circle cx="${x}" cy="${y}" r="${dotR + 8}" fill="${col}" opacity="0.15"/>`;
+    }
+    html += `<circle cx="${x}" cy="${y}" r="${dotR + 2}" fill="${col}" opacity="0.15"/>`;
+    html += `<circle cx="${x}" cy="${y}" r="${dotR}" fill="${col}" opacity="${isSelected ? '1' : '0.85'}" style="cursor:pointer" onclick="selectProjectFromRadar(${p.id})" onmouseenter="showProjectTooltip(event,${p.id})" onmouseleave="hideTooltip()"/>`;
+    html += `<circle cx="${x}" cy="${y}" r="${dotR}" fill="none" stroke="var(--color-bg)" stroke-width="2" style="pointer-events:none"/>`;
+
+    const statusCol = p.status === 'active' ? '#6daa45' : p.status === 'planned' ? '#e8af34' : '#5591c7';
+    html += `<circle cx="${x + dotR * 0.7}" cy="${y + dotR * 0.7}" r="3.5" fill="${statusCol}" stroke="var(--color-bg)" stroke-width="1.5" style="pointer-events:none"/>`;
+
+    const initials = p.name.split(' ').map(w => w[0]).join('').substring(0,2);
+    html += `<text x="${x}" y="${y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="8" font-weight="700" fill="white" style="pointer-events:none" font-family="Satoshi, sans-serif">${initials}</text>`;
+
+    const labelOffset = dotR + 14;
+    const [lx2, ly2] = polar(pos.angle + (pos.angle < 180 ? 15 : -15), maxR * pos.ring + labelOffset);
+    const anchor = pos.angle > 45 && pos.angle < 225 ? 'start' : 'end';
+    html += `<text x="${lx2}" y="${ly2}" text-anchor="${anchor}" font-size="9.5" font-weight="600" fill="currentColor" opacity="${isSelected ? '1' : '0.7'}" font-family="Satoshi, sans-serif" style="pointer-events:none">${p.name}</text>`;
+  });
+
+  html += `<g transform="translate(8, 470)">
+    <circle cx="6" cy="6" r="5" fill="#6daa45"/><text x="14" y="10" font-size="9" fill="currentColor" opacity="0.5" font-family="Satoshi, sans-serif">Aktiv</text>
+    <circle cx="52" cy="6" r="5" fill="#e8af34"/><text x="60" y="10" font-size="9" fill="currentColor" opacity="0.5" font-family="Satoshi, sans-serif">Geplant</text>
+    <circle cx="105" cy="6" r="5" fill="#5591c7"/><text x="113" y="10" font-size="9" fill="currentColor" opacity="0.5" font-family="Satoshi, sans-serif">Konzept</text>
+    <text x="350" y="10" font-size="9" fill="currentColor" opacity="0.4" font-family="Satoshi, sans-serif">Abstand vom Zentrum = Strategische Priorität</text>
+  </g>`;
+
+  svg.innerHTML = html;
+}
+// PROJECT GRID
+// Project positions on radar: sector determines quadrant, relevance determines ring proximity
+const projectPositions = {
+  1: { angle: 320, ring: 0.28 },  // MedVision AI - digital, high relevance → innermost
+  2: { angle: 60,  ring: 0.30 },  // ConnectCare - health, high
+  3: { angle: 80,  ring: 0.55 },  // MediTrack - health, mid
+  4: { angle: 165, ring: 0.72 },  // WorkWell - work, medium
+  5: { angle: 235, ring: 0.78 },  // GreenSupply - sustain, medium-low
+  6: { angle: 340, ring: 0.52 },  // FlowPredict - digital, high
+  7: { angle: 45,  ring: 0.82 },  // GenomeMedi - health, long horizon concept
+  8: { angle: 355, ring: 0.85 },  // SurgeAR - digital, long concept
+};
+function renderProjectGrid() {
+  renderProjectRadar();   // Radar jedes Mal neu zeichnen 
+  const grid = document.getElementById('project-card-list');
+  const sectorClasses = { digital: 'sector-digital', health: 'sector-health', work: 'sector-work', sustain: 'sector-sustain' };
+  const statusClasses = { active: 'status-active', planned: 'status-planned', concept: 'status-concept' };
+  grid.innerHTML = projects.filter(p => activeFilters.sector.includes(p.sector)).map(p => `
+    <div class="project-card" onclick="selectProject(${p.id})">
+      <div class="project-card-accent" style="background:${sectorColors[p.sector]}; opacity:0.7;"></div>
+      <div class="project-card-top">
+        <div class="project-card-title">${p.name}</div>
+        <span class="sector-tag ${sectorClasses[p.sector]}">${p.sectorLabel}</span>
+      </div>
+      <div class="project-card-desc">${p.desc}</div>
+      <div class="project-trends">${p.trends.map(t => `<span class="trend-tag">↑ ${t}</span>`).join('')}</div>
+      <div class="project-card-footer">
+        <div class="project-status">
+          <span class="status-dot ${statusClasses[p.status]}"></span>
+          <span style="color:var(--color-text-muted)">${statusLabels[p.status]}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <span style="font-size:10px;color:var(--color-text-muted);">${p.relevance}%</span>
+          <div class="relevance-bar"><div class="relevance-fill" style="width:${p.relevance}%;background:${sectorColors[p.sector]}"></div></div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// DETAIL PANEL
+function renderDetailPanel(trend, panelId) {
+  const panel = document.getElementById(panelId);
+  const hype = '●'.repeat(trend.hype) + '○'.repeat(5 - trend.hype);
+  panel.innerHTML = `
+    <div class="detail-header">
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;">
+        <span style="width:10px;height:10px;border-radius:50%;background:${sectorColors[trend.sector]};flex-shrink:0;display:inline-block;"></span>
+        <span style="font-size:10px;color:${sectorColors[trend.sector]};font-weight:600;">${sectorNames[trend.sector].toUpperCase()}</span>
+      </div>
+      <div class="detail-title">${trend.name}</div>
+      <div class="detail-subtitle">${trend.desc}</div>
+    </div>
+    <div class="detail-body">
+      <div>
+        <div class="detail-section-title">Strategische Metriken</div>
+        <div>
+          <div class="metric-row">
+            <span class="metric-label">Relevanz für Medi</span>
+            <div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${trend.potential}%"></div></div><span class="metric-value">${trend.potential}%</span></div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Marktreife</span>
+            <div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${trend.maturity}%;background:${sectorColors[trend.sector]}"></div></div><span class="metric-value">${trend.maturity}%</span></div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Hype-Level</span>
+            <div class="hype-indicator">${[1,2,3,4,5].map(i => `<span class="hype-dot ${i <= trend.hype ? 'filled' : ''}"></span>`).join('')}</div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Zeithorizont</span>
+            <span class="metric-value">${trend.horizon === 'now' ? '< 1 Jahr' : trend.horizon === 'mid' ? '1–3 Jahre' : '> 3 Jahre'}</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="detail-section-title">Quellen</div>
+        <div class="tag-list">${trend.sources.map(s => `<span class="detail-tag">📄 ${s}</span>`).join('')}</div>
+      </div>
+      ${trend.projects.length ? `
+      <div>
+        <div class="detail-section-title">Verknüpfte Projekte</div>
+        <div class="tag-list">${trend.projects.map(p => `<span class="detail-tag" style="border-color:var(--color-primary);color:var(--color-primary)">📁 ${p}</span>`).join('')}</div>
+      </div>` : ''}
+      <div>
+        <button class="action-btn primary" onclick="alert('Ideeneinreichung für '${trend.name}' geöffnet — KI-Assistent hilft beim Ausfüllen.')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Idee zu diesem Trend einreichen
+        </button>
+        <button class="action-btn" onclick="alert('Trend '${trend.name}' zur Bewertungsrunde hinzugefügt.')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          Zur Bewertung vormerken
+        </button>
+      </div>
+    </div>`;
+}
+
+function renderProjectDetail(project) {
+  const panel = document.getElementById('detail-panel-project');
+  panel.innerHTML = `
+    <div class="detail-header" style="border-top:3px solid ${sectorColors[project.sector]};">
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;margin-top:0.5rem;">
+        <span style="font-size:10px;color:${sectorColors[project.sector]};font-weight:600;">${project.sectorLabel.toUpperCase()}</span>
+      </div>
+      <div class="detail-title">${project.name}</div>
+      <div class="detail-subtitle">${project.desc}</div>
+    </div>
+    <div class="detail-body">
+      <div>
+        <div class="detail-section-title">Projektdaten</div>
+        <div>
+          <div class="metric-row"><span class="metric-label">Status</span><span class="metric-value">${statusLabels[project.status]}</span></div>
+          <div class="metric-row"><span class="metric-label">Projektleitung</span><span class="metric-value">${project.lead}</span></div>
+          <div class="metric-row"><span class="metric-label">Budget</span><span class="metric-value">${project.budget}</span></div>
+          <div class="metric-row"><span class="metric-label">Trend-Relevanz</span><div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${project.relevance}%;background:${sectorColors[project.sector]}"></div></div><span class="metric-value">${project.relevance}%</span></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="detail-section-title">Strategische Trends</div>
+        <div class="tag-list">${project.trends.map(t => `<span class="detail-tag" style="border-color:var(--color-primary);color:var(--color-primary)">↑ ${t}</span>`).join('')}</div>
+      </div>
+      <div>
+        <button class="action-btn primary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Projekt bearbeiten
+        </button>
+        <button class="action-btn">Im Radar anzeigen</button>
+      </div>
+    </div>`;
+}
+
+function selectTrend(id) {
+  selectedTrend = id;
+  const trend = trends.find(t => t.id === id);
+  renderTrendList();
+  renderRadar();
+  renderDetailPanel(trend, 'detail-panel-radar');
+}
+
+function selectProject(id) {
+  const project = projects.find(p => p.id === id);
+  renderProjectDetail(project);
+}
+
+function selectProjectFromRadar(id) {
+  selectedProject = id;
+  renderProjectRadar();
+  const project = projects.find(p => p.id === id);
+  renderProjectDetail(project);
+}
+
+// TOOLTIP
+function showTooltip(event, id) {
+  const t = trends.find(tr => tr.id === id);
+  const tip = document.getElementById('tooltip');
+  tip.innerHTML = `<div class="tooltip-card-title">${t.name}</div><div class="tooltip-card-meta">${t.desc}<br><br><span style="color:var(--color-primary);font-weight:600">Relevanz: ${t.potential}% · Reife: ${t.maturity}%</span></div>`;
+  tip.classList.add('visible');
+  moveTip(event);
+}
+function moveTip(event) {
+  const tip = document.getElementById('tooltip');
+  if (!tip.classList.contains('visible')) return;
+  tip.style.left = (event.clientX + 14) + 'px';
+  tip.style.top = (event.clientY - 10) + 'px';
+}
+function hideTooltip() { document.getElementById('tooltip').classList.remove('visible'); }
+document.addEventListener('mousemove', moveTip);
+
+// VIEW SWITCHING
+function switchView(view) {
+  currentView = view;
+  ['radar','project','hybrid'].forEach(v => {
+    const viewEl = document.getElementById('view-' + v);
+    if (!viewEl) return;
+
+    if (v === 'hybrid') {
+      // Hybrid wird über display gesteuert
+      viewEl.style.display = (v === view) ? 'flex' : 'none';
+    } else {
+      // A & B haben die .view.active Logik
+      viewEl.classList.toggle('active', v === view);
+    }
+
+    const btn = document.getElementById('btn-' + v);
+    if (btn) btn.classList.toggle('active', v === view);
+
+    const banner = document.getElementById('ab-banner-' + v);
+    if (banner) banner.style.display = v === view ? 'flex' : 'none';
+  });
+
+  if (view === 'radar') {
+    renderRadar();
+  } else if (view === 'project') {
+    renderProjectGrid();      // ← wichtig, damit Projektfokus wieder aufgebaut wird
+  } else if (view === 'hybrid') {
+    renderHybridRadar();
+  }
+}
+
+// FEEDBACK
+function rateFeedback(view, score) {
+  feedbackData[view] = score;
+  const label = score >= 4 ? 'Danke! 👍 Feedback gespeichert.' : 'Danke für dein Feedback! 👎';
+  alert(label + '\n\nBisheriges Feedback:\n' + Object.entries(feedbackData).map(([k,v]) => `${k}: ${v >= 4 ? 'Gut' : 'Schlecht'}`).join('\n'));
+}
+
+function showFeedback() {
+  const msg = Object.keys(feedbackData).length === 0
+    ? 'Noch kein Feedback abgegeben.\nNutze die Buttons im Banner oben!'
+    : 'Feedback-Zusammenfassung:\n' + Object.entries(feedbackData).map(([k,v]) => `${k === 'radar' ? 'Klassischer Radar (A)' : 'Projektzentriert (B)'}: ${v >= 4 ? '👍 Gut' : '👎 Schlecht'}`).join('\n');
+  alert(msg);
+}
+
+// THEME TOGGLE
+(function(){
+  const t = document.querySelector('[data-theme-toggle]'), r = document.documentElement;
+  let d = r.getAttribute('data-theme') || 'dark';
+  t && t.addEventListener('click', () => {
+    d = d === 'dark' ? 'light' : 'dark';
+    r.setAttribute('data-theme', d);
+    t.innerHTML = d === 'dark'
+      ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+      : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+  });
+})();
+// ──────────────────────────────────────────────
+// VIEW C: HYBRID RADAR — Trends + Projekt-Satelliten
+// ──────────────────────────────────────────────
+
+let selectedTrendHybrid = null;
+
+function renderHybridRadar() {
+  const svg = document.getElementById('hybridSVG');
+  if (!svg) return;
+
+  const cx = 250, cy = 250, maxR = 215;
+  const rings = [maxR * 0.33, maxR * 0.66, maxR];
+  const ringLabels = ['Jetzt (<1J.)', 'Mittel (1–3J.)', 'Langfristig (>3J.)'];
+  const sectors = [
+    { name: 'Digitalisierung', startAngle: -90, endAngle: 0,   color: sectorColors.digital,  key: 'digital'  },
+    { name: 'Gesundheit',      startAngle: 0,   endAngle: 90,  color: sectorColors.health,   key: 'health'   },
+    { name: 'New Work',        startAngle: 90,  endAngle: 180, color: sectorColors.work,     key: 'work'     },
+    { name: 'Nachhaltigkeit',  startAngle: 180, endAngle: 270, color: sectorColors.sustain,  key: 'sustain'  },
+  ];
+
+  function polar(angle, radius) {
+    const rad = (angle - 90) * Math.PI / 180;
+    return [cx + radius * Math.cos(rad), cy + radius * Math.sin(rad)];
+  }
+
+  const sel = selectedTrendHybrid;
+  const filtered = getFilteredTrends();
+  let html = '';
+
+  // Hintergründe leicht ausblenden, wenn ein Trend ausgewählt ist
+  sectors.forEach(s => {
+    if (!activeFilters.sector.includes(s.key)) return;
+    const [x1,y1] = polar(s.startAngle, maxR);
+    const [x2,y2] = polar(s.endAngle, maxR);
+    const bgOp    = sel ? '0.02' : '0.06';
+    const lblOp   = sel ? '0.18' : '0.9';
+    html += `<path d="M${cx},${cy} L${x1},${y1} A${maxR},${maxR} 0 0,1 ${x2},${y2} Z" fill="${s.color}" opacity="${bgOp}"/>`;
+    const mid = (s.startAngle + s.endAngle) / 2;
+    const [lx,ly] = polar(mid, maxR + 20);
+    html += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="600" fill="${s.color}" opacity="${lblOp}" font-family="Satoshi,sans-serif">${s.name}</text>`;
+    const [dx,dy] = polar(s.startAngle, maxR);
+    html += `<line x1="${cx}" y1="${cy}" x2="${dx}" y2="${dy}" stroke="${s.color}" stroke-width="1" opacity="${sel ? '0.05' : '0.18'}"/>`;
+  });
+
+  rings.forEach((r, i) => {
+    html += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="currentColor" stroke-width="0.8" opacity="${sel ? '0.05' : '0.11'}"/>`;
+    if (!sel) {
+      html += `<text x="${cx + r - 4}" y="${cy - 6}" text-anchor="end" font-size="9" fill="currentColor" opacity="0.28" font-family="Satoshi,sans-serif">${ringLabels[i]}</text>`;
+    }
+  });
+
+  html += `<circle cx="${cx}" cy="${cy}" r="12" fill="var(--color-primary)" opacity="${sel ? '0.04' : '0.13'}"/>`;
+  html += `<circle cx="${cx}" cy="${cy}" r="5"  fill="var(--color-primary)" opacity="${sel ? '0.15' : '0.5'}"/>`;
+
+  // Trend-Positionen vorberechnen
+  const trendPos = {};
+  filtered.forEach(t => {
+    const actualR = [rings[0]*0.55, rings[1]*0.82, rings[2]*0.88][t.ring - 1];
+    trendPos[t.id] = polar(t.angle, actualR);
+  });
+
+  // Satelliten für ausgewählten Trend
+  if (sel) {
+    const selTrend = trends.find(t => t.id === sel);
+    const [tx, ty] = trendPos[sel];
+    const linkedIds = trendToProjects[sel] || [];
+
+    const orbitR = 42;
+    html += `<circle cx="${tx}" cy="${ty}" r="${orbitR}" fill="none" stroke="${sectorColors[selTrend.sector]}" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.5"/>`;
+
+    linkedIds.forEach((projId, i) => {
+      const proj = projects.find(p => p.id === projId);
+      if (!proj) return;
+      const count   = linkedIds.length;
+      const spread  = Math.min(50, 25 * count);
+      const angle   = selTrend.angle + (count === 1 ? 0 : -spread + (i / (count - 1)) * spread * 2);
+      const [sx, sy] = polar(angle, Math.sqrt((tx-cx)**2 + (ty-cy)**2) + orbitR);
+
+      const projCol = sectorColors[proj.sector];
+      const statusCol = proj.status === 'active' ? '#6daa45'
+                      : proj.status === 'planned' ? '#e8af34'
+                      : '#5591c7';
+
+      html += `<line x1="${tx}" y1="${ty}" x2="${sx}" y2="${sy}" stroke="${sectorColors[selTrend.sector]}" stroke-width="1.2" opacity="0.35"/>`;
+      html += `<circle cx="${sx}" cy="${sy}" r="13" fill="${projCol}" opacity="0.12"/>`;
+      html += `<circle cx="${sx}" cy="${sy}" r="9.5" fill="${projCol}" opacity="0.92"/>`;
+      html += `<circle cx="${sx}" cy="${sy}" r="9.5" fill="none" stroke="var(--color-bg)" stroke-width="2"/>`;
+      html += `<circle cx="${sx+6.5}" cy="${sy+6.5}" r="3.5" fill="${statusCol}" stroke="var(--color-bg)" stroke-width="1.5"/>`;
+
+      const initials = proj.name.split(' ').map(w=>w[0]).join('').substring(0,2);
+      html += `<text x="${sx}" y="${sy+1}" text-anchor="middle" dominant-baseline="middle" font-size="7.5" font-weight="700" fill="white" font-family="Satoshi,sans-serif" pointer-events="none">${initials}</text>`;
+
+      const [lx,ly] = polar(angle, Math.sqrt((tx-cx)**2 + (ty-cy)**2) + orbitR + 22);
+      const anchor  = lx >= cx ? 'start' : 'end';
+      html += `<text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="9.5" font-weight="600" fill="${projCol}" opacity="0.95" font-family="Satoshi,sans-serif" pointer-events="none">${proj.name}</text>`;
+    });
+
+    if (linkedIds.length === 0) {
+      html += `<text x="${tx}" y="${ty+36}" text-anchor="middle" font-size="9" fill="currentColor" opacity="0.38" font-family="Satoshi,sans-serif">Keine Projekte verknüpft</text>`;
+    }
+  }
+
+  // Trend-Punkte (ausblenden, wenn nicht aktiv)
+  filtered.forEach(t => {
+    const [x,y] = trendPos[t.id];
+    const r     = t.relevance === 'high' ? 9 : t.relevance === 'medium' ? 7 : 5;
+    const isSel = sel === t.id;
+    const dotOp = sel ? (isSel ? '1' : '0.12') : '0.85';
+    const lblOp = sel ? (isSel ? '1' : '0.08') : '0.72';
+    const pCount = (trendToProjects[t.id] || []).length;
+
+    if (isSel) {
+      html += `<circle cx="${x}" cy="${y}" r="${r+16}" fill="${sectorColors[t.sector]}" opacity="0.07"/>`;
+      html += `<circle cx="${x}" cy="${y}" r="${r+9}"  fill="${sectorColors[t.sector]}" opacity="0.12"/>`;
+    }
+
+    html += `<g style="cursor:pointer" onclick="selectTrendHybrid(${t.id})" onmouseenter="showTooltip(event,${t.id})" onmouseleave="hideTooltip()">`;
+    html += `<circle cx="${x}" cy="${y}" r="${r}" fill="${sectorColors[t.sector]}" opacity="${dotOp}"/>`;
+    html += `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="var(--color-bg)" stroke-width="1.5" opacity="${dotOp}"/>`;
+
+    if (!sel && pCount > 0) {
+      html += `<circle cx="${x+r*0.75}" cy="${y-r*0.75}" r="5" fill="var(--color-primary)" opacity="0.92"/>`;
+      html += `<text x="${x+r*0.75}" y="${y-r*0.75+1}" text-anchor="middle" dominant-baseline="middle" font-size="6.5" font-weight="700" fill="white" font-family="Satoshi,sans-serif" pointer-events="none">${pCount}</text>`;
+    }
+
+    html += `<text x="${x}" y="${y-r-6}" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="${lblOp}" font-family="Satoshi,sans-serif" pointer-events="none">${t.name.length > 16 ? t.name.substring(0,15)+'…' : t.name}</text>`;
+    html += `</g>`;
+  });
+
+  if (!sel) {
+    html += `<g transform="translate(8,480)">
+      <circle cx="6" cy="5" r="4.5" fill="var(--color-primary)" opacity="0.85"/>
+      <text x="15" y="9" font-size="8.5" fill="currentColor" opacity="0.35" font-family="Satoshi,sans-serif">
+        Zahl = verknüpfte Projekte · Klick auf Trend → Satelliten
+      </text>
+    </g>`;
+  } else {
+    html += `<text x="250" y="490" text-anchor="middle" font-size="8.5" fill="currentColor" opacity="0.25" font-family="Satoshi,sans-serif">
+      Erneut klicken zum Deselektieren · anderen Trend wählen zum Wechsel
+    </text>`;
+  }
+
+  svg.innerHTML = html;
+}
+
+function selectTrendHybrid(id) {
+  selectedTrendHybrid = (selectedTrendHybrid === id) ? null : id;
+  renderHybridRadar();
+
+  if (selectedTrendHybrid) {
+    const trend = trends.find(t => t.id === selectedTrendHybrid);
+    renderHybridDetail(trend);
+  } else {
+    const panel = document.getElementById('detail-panel-hybrid');
+    panel.innerHTML = `
+      <div class="detail-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;margin:0 auto 0.75rem;color:var(--color-text-faint)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p>Klicke auf einen Trend, um seine verknüpften Projekte als Satelliten zu sehen.</p>
+      </div>`;
+  }
+}
+function renderHybridDetail(trend) {
+  const panel = document.getElementById('detail-panel-hybrid');
+  const linkedIds  = trendToProjects[trend.id] || [];
+  const linkedProjs = linkedIds.map(id => projects.find(p => p.id === id)).filter(Boolean);
+
+  const statCol = { active:'#6daa45', planned:'#e8af34', concept:'#5591c7' };
+  const statLbl = { active:'Aktiv',   planned:'Geplant', concept:'Konzept' };
+
+  const projCards = linkedProjs.length === 0
+    ? `<div style="font-size:var(--text-xs);color:var(--color-text-muted);padding:0.4rem 0;">Noch keine Projekte mit diesem Trend verknüpft.</div>`
+    : linkedProjs.map(p => `
+      <div style="padding:0.65rem 0.75rem;background:var(--color-surface-offset);border:1px solid var(--color-border);border-radius:var(--radius-md);margin-bottom:0.4rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.3rem;">
+          <span style="font-size:var(--text-xs);font-weight:700;color:var(--color-text);display:flex;align-items:center;gap:5px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:${sectorColors[p.sector]};display:inline-block;flex-shrink:0;"></span>
+            ${p.name}
+          </span>
+          <span style="font-size:10px;font-weight:700;font-family:var(--font-mono);color:var(--color-primary);">${p.relevance}%</span>
+        </div>
+        <div style="font-size:10px;color:var(--color-text-muted);margin-bottom:0.4rem;line-height:1.45;">${p.desc.substring(0,90)}…</div>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <span style="width:6px;height:6px;border-radius:50%;background:${statCol[p.status]};display:inline-block;"></span>
+          <span style="font-size:10px;color:var(--color-text-muted);">${statLbl[p.status]}</span>
+          <div style="flex:1;height:4px;background:var(--color-surface-dynamic);border-radius:var(--radius-full);overflow:hidden;margin-left:auto;max-width:70px;">
+            <div style="height:100%;width:${p.relevance}%;background:${sectorColors[p.sector]};border-radius:var(--radius-full);"></div>
+          </div>
+        </div>
+      </div>`).join('');
+
+  panel.innerHTML = `
+    <div class="detail-header">
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;">
+        <span style="width:10px;height:10px;border-radius:50%;background:${sectorColors[trend.sector]};display:inline-block;"></span>
+        <span style="font-size:10px;color:${sectorColors[trend.sector]};font-weight:600;">${sectorNames[trend.sector].toUpperCase()}</span>
+      </div>
+      <div class="detail-title">${trend.name}</div>
+      <div class="detail-subtitle">${trend.desc}</div>
+    </div>
+    <div class="detail-body">
+      <div>
+        <div class="detail-section-title">Strategische Metriken</div>
+        <div>
+          <div class="metric-row">
+            <span class="metric-label">Relevanz für Medi</span>
+            <div class="score-bar">
+              <div class="score-track"><div class="score-fill" style="width:${trend.potential}%"></div></div>
+              <span class="metric-value">${trend.potential}%</span>
+            </div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Marktreife</span>
+            <div class="score-bar">
+              <div class="score-track"><div class="score-fill" style="width:${trend.maturity}%;background:${sectorColors[trend.sector]}"></div></div>
+              <span class="metric-value">${trend.maturity}%</span>
+            </div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Zeithorizont</span>
+            <span class="metric-value">${trend.horizon === 'now' ? '< 1 Jahr' : trend.horizon === 'mid' ? '1–3 Jahre' : '> 3 Jahre'}</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="detail-section-title">Verknüpfte Projekte (${linkedProjs.length})</div>
+        ${projCards}
+      </div>
+      <div>
+        <div class="detail-section-title">Quellen</div>
+        <div class="tag-list">${trend.sources.map(s=>`<span class="detail-tag">📄 ${s}</span>`).join('')}</div>
+      </div>
+      <div>
+        <button class="action-btn primary" onclick="alert('Ideeneinreichung für \\\\'${trend.name}\\\\' geöffnet — KI-Assistent hilft beim Ausfüllen.')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Idee einreichen
+        </button>
+        <button class="action-btn" onclick="alert('Trend zur Bewertungsrunde vorgemerkt.')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          Zur Bewertung vormerken
+        </button>
+      </div>
+    </div>`;
+}
+// INIT
+renderTrendList();
+renderRadar();
+renderProjectGrid();
+</script>
+</body>
+</html>
